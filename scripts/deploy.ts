@@ -2,13 +2,13 @@ import { ethers } from "hardhat";
 
 async function main() {
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const CryptoTip = await ethers.getContractFactory("CryptoTip");
+  const cryptoTip = await CryptoTip.deploy();
 
-  await lock.deployed();
+  await cryptoTip.deployed();
 
   console.log(
-    `Lock with ${ethers.utils.formatEther(lockedAmount)}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
+    `CryptoTip is deployed to ${cryptoTip.address}`
   );
 }
 
