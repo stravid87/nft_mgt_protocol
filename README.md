@@ -1,8 +1,6 @@
-# Sample Hardhat Project
+# nft_mgt_protocol
+A experimental service for distributing fiancial incentives to open source contributors and organizing executive and managerial decisions internationally using NFTs and other DeFi technology.
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
 
 ```shell
 npx hardhat help
