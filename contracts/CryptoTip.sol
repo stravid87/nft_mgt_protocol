@@ -1,32 +1,33 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+
 contract CryptoTip {
     address owner;
-    //
-    //    struct Team {
-    //        string name;
-    //        address owner;
-    //        address [] members;
-    //    }
-
+    address balance;
     mapping(address => address []) public userTeam;
 
     constructor(){
         owner = msg.sender;
     }
+    function sendTips(address payable[] memory teamMembers) public payable {
+        require(msg.value > 0, "Must send some ETH");
 
-    function addTeamMember(address member) public {
-        userTeam[msg].push(member);
-    }
+        uint totalAmount = msg.value;
+        uint amountPerMember = totalAmount / teamMembers.length;
+        uint remainder = totalAmount % teamMembers.length;
 
-    function getUserTeam() public view returns (address []) {
-        return userTeam[msg];
-    }
+        for (uint i = 0; i < teamMembers.length; i++) {
+            uint amountToSend = amountPerMember;
+            if (i == teamMembers.length - 1) {
+                // Send the remainder to the last member
+                amountToSend += remainder;
+            }
+            require(address(this).balance >= amountToSend, "Insufficient contract balance");
 
-        function sendTips() public payable {
-            address [] myTeam = userTeam[msg];
-            uint amount = msg.value / myTeam.length();
-            uint remain = msg.value - amount * myTeam.length();
+            (bool sent,) = teamMembers[i].call{value : amountToSend}("");
+            require(sent, "Failed to send ETH");
         }
+    }
+
 }
