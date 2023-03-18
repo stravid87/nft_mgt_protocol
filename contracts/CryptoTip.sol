@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
-    mapping(address => address []) public userTeam;
     mapping(address => uint256) public balances;
 
     event TipsSent(address payable [] teamMembers, uint256 amount);
