@@ -12,11 +12,12 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     mapping(address => address []) public userTeam;
     mapping(address => uint256) public balances;
 
-    event TipsSent(address[] teamMembers, uint256 amount);
+    event TipsSent(address payable [] teamMembers, uint256 amount);
 
     function initialize() initializer public {
         __Ownable_init();
     }
+
     function sendTips(address payable[] calldata teamMembers) external payable {
         require(teamMembers.length > 0, "Must have at least one team member");
         require(msg.value > 0, "Must send some ETH");
@@ -35,7 +36,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             balances[teamMembers[i]] = balances[teamMembers[i]].add(amountToSend);
         }
 
-        emit TipsSent(address[](teamMembers), totalAmount);
+        emit TipsSent(teamMembers, totalAmount);
     }
 
     function withdraw() external nonReentrant {
@@ -46,12 +47,5 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         (bool sent,) = msg.sender.call{value : balance}("");
         require(sent, "Failed to send ETH");
         require(balances[msg.sender] == 0, "Failed to zero out balance");
-    }
-
-    function transferOwnership(address newOwner) external {
-        require(msg.sender == owner, "Only the owner can transfer ownership");
-        require(newOwner != address(0), "New owner cannot be zero address");
-
-        owner = newOwner;
     }
 }
