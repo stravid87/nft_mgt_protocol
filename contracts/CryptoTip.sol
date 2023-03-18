@@ -1,22 +1,19 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 
-contract CryptoTip is Initializable, ReentrancyGuardUpgradeable {
+contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
-    address owner;
     mapping(address => address []) public userTeam;
     mapping(address => uint256) public balances;
-
     function initialize() initializer public {
-        owner = msg.sender;
+        __Ownable_init();
     }
-
     function sendTips(address payable[] calldata teamMembers) external payable {
         require(teamMembers.length > 0, "Must have at least one team member");
         require(msg.value > 0, "Must send some ETH");
@@ -36,7 +33,7 @@ contract CryptoTip is Initializable, ReentrancyGuardUpgradeable {
         }
     }
 
-    function withdraw() external noReentrant {
+    function withdraw() external nonReentrant {
         uint256 balance = balances[msg.sender];
         require(balance > 0, "No balance to withdraw");
 
