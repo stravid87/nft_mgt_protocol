@@ -69,6 +69,10 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         pushLimit = value;
     }
 
+    function getBalance(address wallet) external {
+        return balances[wallet];
+    }
+
     function withdraw() external nonReentrant {
         uint256 balance = balances[msg.sender];
         require(balance > 0, "No balance to withdraw");
