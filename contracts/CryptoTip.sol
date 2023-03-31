@@ -10,6 +10,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     mapping(address => uint256) public balances;
+    uint8 public pushLimit = 10;
 
     event TipsSent(address payable [] teamMembers, uint256 amount);
     event TipsPushed(address payable [] teamMembers, uint256 amount);
@@ -43,6 +44,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function pushTips(address payable[] calldata teamMembers) external payable {
         require(teamMembers.length > 0, "Must have at least one team member");
         require(msg.value > 0, "Must send some ETH");
+        require(pushLimit >= teamMembers.length, "You have too much team members");
 
         uint totalAmount = msg.value;
         uint amountPerMember = totalAmount.div(teamMembers.length);
@@ -61,6 +63,10 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
 
         emit TipsPushed(teamMembers, totalAmount);
+    }
+
+    function updatePushLimit(uint8 value) external onlyOwner {
+        pushLimit = value;
     }
 
     function withdraw() external nonReentrant {
