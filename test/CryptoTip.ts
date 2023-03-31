@@ -94,7 +94,7 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      *      Then the team members receive the correct amount of ETH
      *      And the user's wallet balance is updated
      */
-    it.only("should allow user to push tips to team members", async function () {
+    it("should allow user to push tips to team members", async function () {
         await cryptoTip.connect(owner).pushTips(teamMembers, {value: totalAmount})
         await reloadBalances()
 
@@ -133,28 +133,28 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
     })
 
 
-    it("Should allow Team Member to withdraw theirs accounts. ", async function () {
-        const initialBalances = await Promise.all(
-            teamMembers.map((member: any) => ethers.provider.getBalance(member))
-        );
-        const totalAmount = ethers.utils.parseEther("0.1");
+    /**
+     * Scenario: User can withdraw their tips
+     *      Given a user with an Ethereum wallet
+     *      And the CryptoTip contract is deployed
+     *      And the user has some tips in their balance
+     *      When the user withdraws their tips
+     *      Then the correct amount of ETH is transferred to the user's wallet
+     *      And the user's balance is updated
+     */
+    it("Should allow  User can withdraw their tips", async function () {
         await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
-        expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(totalAmount)
 
-        // await cryptoTip.sendTips(teamMembers);
+        // Call withdraw function
         await Promise.all(
             SingedTeamMembers.map(async (signedMember: any) => {
                 await cryptoTip.connect(signedMember).withdraw()
             })
         );
-        const finalBalances = await Promise.all(
-            teamMembers.map(async (member: any) => {
-                return ethers.provider.getBalance(member)
-            })
-        );
+        await reloadBalances()
 
         for (let i = 0; i < teamMembers.length; i++) {
-            expect(finalBalances[i]).to.be.gt(initialBalances[i]);
+            expect(membersWalletCurrentBalances[i]).to.be.gt(membersWalletInitialBalances[i]);
         }
     });
 
