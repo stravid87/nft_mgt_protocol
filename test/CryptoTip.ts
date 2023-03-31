@@ -1,6 +1,5 @@
 import {expect} from "chai";
 import {ethers} from "hardhat";
-import * as assert from "assert";
 
 describe("Feature: CryptoTip contract allows users to send and push tips to team members", function () {
     let cryptoTip: any;
@@ -37,6 +36,7 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      */
     it.only("should allow User can send tips to team members", async function () {
         const ownerInitialBalance = await owner.getBalance()
+        const cryptoTipInitialBalance= await ethers.provider.getBalance(cryptoTip.address)
         // User sends tips
         await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
 
@@ -49,10 +49,10 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         )
 
         // Check Contract Balance is updated
-        expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(totalAmount)
+        expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(cryptoTipInitialBalance.add(totalAmount))
 
         // Check Owner wallet decrease
-        expect(await owner.getBalance()).to.be.below(ownerInitialBalance)
+        expect(await owner.getBalance()).to.be.below(ownerInitialBalance.sub(totalAmount))
     })
 
 
