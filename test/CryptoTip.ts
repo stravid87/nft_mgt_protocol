@@ -42,12 +42,12 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      */
     beforeEach(async function () {
         const CryptoTip = await ethers.getContractFactory("CryptoTip");
-
-        cryptoTip = await CryptoTip.deploy();
-        await cryptoTip.deployed();
-
         const [signer, teamMember1, teamMember2] = await ethers.getSigners();
         owner = signer;
+
+        // cryptoTip = await CryptoTip.deploy();
+        cryptoTip  = await CryptoTip.connect(owner).deploy();
+        cryptoTip.connect(owner).initialize()
         teamMembers = [teamMember1.address, teamMember2.address];
         SingedTeamMembers = [teamMember1, teamMember2];
         await reloadBalances()
@@ -172,6 +172,19 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         await expect(cryptoTip.connect(owner).sendTips([], {value: totalAmount})).to.be.revertedWith("Must have at least one team member")
         await expect(cryptoTip.connect(owner).pushTips([], {value: totalAmount})).to.be.revertedWith("Must have at least one team member")
         await expect(cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})).to.not.be.reverted
+    });
+
+    /**
+     * Scenario: User can update the push limit
+     *      Given a user with an Ethereum wallet
+     *      And the CryptoTip contract is deployed
+     *      And the user is the owner of the contract
+     *      When the user updates the push limit
+     *      Then the push limit is updated
+     */
+    it("Should allow owner to update the push limit", async function () {
+        await expect(cryptoTip.connect(SingedTeamMembers[0]).updatePushLimit(5)).to.be.revertedWith('Ownable: caller is not the owner')
+        await expect(cryptoTip.connect(owner).updatePushLimit(5)).to.not.be.reverted
     });
 
     it("emits TipsSent event", async function () {
