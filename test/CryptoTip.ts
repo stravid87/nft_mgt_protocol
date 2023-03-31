@@ -1,11 +1,12 @@
 import {expect} from "chai";
 import {ethers} from "hardhat";
+import {BigNumber} from "ethers";
 
 describe("Feature: CryptoTip contract allows users to send and push tips to team members", function () {
     let cryptoTip: any;
     // Team Members address
     let teamMembers: Array<string>;
-    let SingedTeamMembers: any;
+    let SingedTeamMembers: Array<any>;
     let owner: any;
     const totalAmount = ethers.utils.parseEther("1");
 
@@ -34,9 +35,9 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      *      Then the team members receive the correct amount of ETH
      *      And the user's wallet balance is updated
      */
-    it.only("should allow User can send tips to team members", async function () {
+    it("should allow User can send tips to team members", async function () {
         const ownerInitialBalance = await owner.getBalance()
-        const cryptoTipInitialBalance= await ethers.provider.getBalance(cryptoTip.address)
+        const cryptoTipInitialBalance = await ethers.provider.getBalance(cryptoTip.address)
         // User sends tips
         await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
 
@@ -50,6 +51,37 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
 
         // Check Contract Balance is updated
         expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(cryptoTipInitialBalance.add(totalAmount))
+
+        // Check Owner wallet decrease
+        expect(await owner.getBalance()).to.be.below(ownerInitialBalance.sub(totalAmount))
+    })
+
+
+    /**
+     * Scenario: User can push tips to team members
+     *      Given See <beforeEach>
+     *      When the user pushes tips to a list of team members
+     *      Then the team members receive the correct amount of ETH
+     *      And the user's wallet balance is updated
+     */
+    it("should allow user to push tips to team members", async function () {
+        const cryptoTipInitialBalance = await ethers.provider.getBalance(cryptoTip.address)
+        const ownerInitialBalance = await owner.getBalance()
+        const initialBalances: Array<BigNumber> = await Promise.all(
+            SingedTeamMembers.map((member: any) => member.getBalance())
+        );
+        await cryptoTip.connect(owner).pushTips(teamMembers, {value: totalAmount})
+
+        // Check Members Wallet balance increase
+        await Promise.all(
+            SingedTeamMembers.map(async (member: any, index) => {
+                    expect( await member.getBalance()).to.be.eql(initialBalances[index].add(totalAmount.div(teamMembers.length)))
+                }
+            )
+        )
+
+        // Check contract wallet do not increase
+        expect(cryptoTipInitialBalance).to.be.eql(await  ethers.provider.getBalance(cryptoTip.address))
 
         // Check Owner wallet decrease
         expect(await owner.getBalance()).to.be.below(ownerInitialBalance.sub(totalAmount))
@@ -76,27 +108,6 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         expect(initialBalances).to.not.be.eql(finalBalances);
     })
 
-    /**
-     * Scenario: User can send tips
-     *  Given Fresh Deploy Crypto Tips Contract
-     *  When A user send "X" Amount Tips using pushTips
-     *  Then Crypto Tips Contract balance should not increase
-     *  Then Team members wallet balance should increase
-     */
-    it("should allow user to push tips to team members", async function () {
-        const initialContractBalance = await ethers.provider.getBalance(cryptoTip.address)
-        const initialBalances = await Promise.all(
-            teamMembers.map((member: any) => ethers.provider.getBalance(member))
-        );
-        await cryptoTip.connect(owner).pushTips(teamMembers, {value: totalAmount})
-
-        const finalBalances = await Promise.all(
-            teamMembers.map((member: any) => cryptoTip.connect(owner).getBalance(member))
-        );
-
-        expect(initialBalances).to.not.be.eql(finalBalances);
-        expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(initialContractBalance)
-    })
 
     it("Should allow Team Member to withdraw theirs accounts. ", async function () {
         const initialBalances = await Promise.all(
