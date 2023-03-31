@@ -65,7 +65,7 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      *      Then the team members receive the correct amount of ETH
      *      And the user's wallet balance is updated
      */
-    it.only("should allow User can send tips to team members", async function () {
+    it("should allow User can send tips to team members", async function () {
         // User sends tips
         await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
 
@@ -94,25 +94,21 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      *      Then the team members receive the correct amount of ETH
      *      And the user's wallet balance is updated
      */
-    it("should allow user to push tips to team members", async function () {
-        const cryptoTipInitialBalance = await ethers.provider.getBalance(cryptoTip.address)
-        const ownerInitialBalance = await owner.getBalance()
+    it.only("should allow user to push tips to team members", async function () {
         await cryptoTip.connect(owner).pushTips(teamMembers, {value: totalAmount})
+        await reloadBalances()
 
         // Check Members Wallet balance increase
-        await Promise.all(
-            SingedTeamMembers.map(async (member: any, index) => {
-                    // TODO check Member CryptoTips Balanche should not change
-                    expect(await member.getBalance()).to.be.eql(membersWalletInitialBalances[index].add(totalAmount.div(teamMembers.length)))
-                }
-            )
-        )
+        expect(membersCryptoTipCurrentBalances).to.eql(membersCryptoTipInitialBalances)
+        for (let i = 0; i < teamMembers.length; i++) {
+            expect(membersWalletCurrentBalances[i]).to.be.eql(membersWalletInitialBalances[i].add(totalAmount.div(teamMembers.length)))
+        }
 
         // Check contract wallet balance do not increase
-        expect(cryptoTipInitialBalance).to.be.eql(await ethers.provider.getBalance(cryptoTip.address))
+        expect(cryptoTipInitialBalance).to.be.eql(cryptoTipCurrentBalance)
 
         // Check Owner wallet decrease
-        expect(await owner.getBalance()).to.be.below(ownerInitialBalance.sub(totalAmount))
+        expect(ownerCurrentBalance).to.be.below(ownerInitialBalance.sub(totalAmount))
     })
 
 
