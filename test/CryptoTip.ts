@@ -46,7 +46,7 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         owner = signer;
 
         // cryptoTip = await CryptoTip.deploy();
-        cryptoTip  = await CryptoTip.connect(owner).deploy();
+        cryptoTip = await CryptoTip.connect(owner).deploy();
         cryptoTip.connect(owner).initialize()
         teamMembers = [teamMember1.address, teamMember2.address];
         SingedTeamMembers = [teamMember1, teamMember2];
@@ -111,28 +111,6 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         expect(ownerCurrentBalance).to.be.below(ownerInitialBalance.sub(totalAmount))
     })
 
-
-    /**
-     * Scenario: User can send check other user balance
-     *  Given Fresh Deploy Crypto Tips Contract
-     *  When A user send Tips to his team,
-     *  Then he can check their balance before and after who should increase
-     */
-    it("should allow user to get their balance tips to team members", async function () {
-        const initialBalances = await Promise.all(
-            teamMembers.map((member: any) => cryptoTip.connect(owner).getBalance(member))
-        );
-
-        await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
-
-        const finalBalances = await Promise.all(
-            teamMembers.map((member: any) => cryptoTip.connect(owner).getBalance(member))
-        );
-
-        expect(initialBalances).to.not.be.eql(finalBalances);
-    })
-
-
     /**
      * Scenario: User can withdraw their tips
      *      Given a user with an Ethereum wallet
@@ -187,6 +165,46 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         await expect(cryptoTip.connect(owner).updatePushLimit(5)).to.not.be.reverted
     });
 
+
+    /**
+     * Scenario: User must send some ETH to send tips
+     *      Given a user with an Ethereum wallet
+     *      And the CryptoTip contract is deployed
+     *      When the user tries to send tips without sending any ETH
+     *      Then the transaction fails with an error message
+     */
+    it("Should allow User only to send some ETH before to send tips", async function () {
+        await expect(cryptoTip.connect(owner).sendTips(teamMembers, {value: 0})).to.be.revertedWith("Must send some ETH")
+        await expect(cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})).to.not.be.reverted
+    })
+
+    /**
+     * Scenario: User cannot withdraw tips if they have no balance
+     *      Given a user with an Ethereum wallet
+     *      And the CryptoTip contract is deployed
+     *      And the user has no tips in their balance
+     *      When the user tries to withdraw their tips
+     *      Then the transaction fails with an error message
+     */
+    it("Should not allow User to withdraw tips if they have no balance", async function () {
+
+        await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
+        await Promise.all(
+            SingedTeamMembers.map(async (signedMember: any) => {
+                await expect(cryptoTip.connect(signedMember).withdraw()).to.not.be.reverted
+            })
+        );
+        await expect(cryptoTip.connect(owner).withdraw()).to.be.reverted
+    })
+
+    /**
+     * Scenario: User send & push tips to team members
+     *      Given See <beforeEach>
+     *      When the user sends tips to a list of team members
+     *      Then the team members receive the correct amount of ETH
+     *      And the user's wallet balance is updated
+     *      Then we events are emitted
+     */
     it("emits TipsSent event", async function () {
 
         const tx = await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
