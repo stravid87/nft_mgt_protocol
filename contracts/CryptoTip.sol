@@ -69,7 +69,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         pushLimit = value;
     }
 
-    function getBalance(address wallet) external {
+    function getBalance(address wallet) external view returns (uint256) {
         return balances[wallet];
     }
 
