@@ -4,7 +4,7 @@ import {ethers} from "hardhat";
 describe("CryptoTip", function () {
     let cryptoTip: any;
     // Team Members address
-    let teamMembers: any;
+    let teamMembers: Array<string>;
     let SingedTeamMembers: any;
     let owner: any;
     const totalAmount = ethers.utils.parseEther("1");
@@ -30,6 +30,27 @@ describe("CryptoTip", function () {
     it("should allow user to send tips to team members", async function () {
         await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
         expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(totalAmount)
+    })
+
+
+    /**
+     * Scenario: User can send check other user balance
+     *  Given Fresh Deploy Crypto Tips Contract
+     *  When A user send Tips to his team,
+     *  Then he can check their balance before and after who should increase
+     */
+    it.only("should allow user to get their balance tips to team members", async function () {
+        const initialBalances = await Promise.all(
+            teamMembers.map((member: any) => cryptoTip.connect(owner).getBalance(member))
+        );
+
+        await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
+
+        const finalBalances = await Promise.all(
+            teamMembers.map((member: any) => cryptoTip.connect(owner).getBalance(member))
+        );
+
+        expect(initialBalances).to.not.be.eql(finalBalances);
     })
 
     it("Should allow Team Member to withdraw theirs accounts. ", async function () {
