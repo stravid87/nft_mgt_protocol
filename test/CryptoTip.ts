@@ -39,7 +39,7 @@ describe("CryptoTip", function () {
      *  When A user send Tips to his team,
      *  Then he can check their balance before and after who should increase
      */
-    it.only("should allow user to get their balance tips to team members", async function () {
+    it("should allow user to get their balance tips to team members", async function () {
         const initialBalances = await Promise.all(
             teamMembers.map((member: any) => cryptoTip.connect(owner).getBalance(member))
         );
@@ -51,6 +51,28 @@ describe("CryptoTip", function () {
         );
 
         expect(initialBalances).to.not.be.eql(finalBalances);
+    })
+
+    /**
+     * Scenario: User can send tips
+     *  Given Fresh Deploy Crypto Tips Contract
+     *  When A user send "X" Amount Tips using pushTips
+     *  Then Crypto Tips Contract balance should not increase
+     *  Then Team members wallet balance should increase
+     */
+    it.only("should allow user to push tips to team members", async function () {
+        const initialContractBalance= await ethers.provider.getBalance(cryptoTip.address)
+        const initialBalances = await Promise.all(
+            teamMembers.map((member: any) => ethers.provider.getBalance(member))
+        );
+        await cryptoTip.connect(owner).pushTips(teamMembers, {value: totalAmount})
+
+        const finalBalances = await Promise.all(
+            teamMembers.map((member: any) => cryptoTip.connect(owner).getBalance(member))
+        );
+
+        expect(initialBalances).to.not.be.eql(finalBalances);
+        expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(initialContractBalance)
     })
 
     it("Should allow Team Member to withdraw theirs accounts. ", async function () {
