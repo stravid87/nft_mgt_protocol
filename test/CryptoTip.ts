@@ -142,7 +142,7 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      *      Then the correct amount of ETH is transferred to the user's wallet
      *      And the user's balance is updated
      */
-    it("Should allow  User can withdraw their tips", async function () {
+    it("Should allow  User to withdraw their tips", async function () {
         await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
 
         // Call withdraw function
@@ -156,6 +156,22 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         for (let i = 0; i < teamMembers.length; i++) {
             expect(membersWalletCurrentBalances[i]).to.be.gt(membersWalletInitialBalances[i]);
         }
+    });
+
+
+    /**
+     * Scenario: User must have at least one team member to send tips
+     *      Given a user with an Ethereum wallet
+     *      And the CryptoTip contract is deployed
+     *      And the user has some ETH in their wallet
+     *      When the user tries to send tips with an empty list of team members
+     *      Then the transaction fails with an error message
+     */
+    it("Should allow User when he have at least one team member to send tips", async function () {
+
+        await expect(cryptoTip.connect(owner).sendTips([], {value: totalAmount})).to.be.revertedWith("Must have at least one team member")
+        await expect(cryptoTip.connect(owner).pushTips([], {value: totalAmount})).to.be.revertedWith("Must have at least one team member")
+        await expect(cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})).to.not.be.reverted
     });
 
     it("emits TipsSent event", async function () {
