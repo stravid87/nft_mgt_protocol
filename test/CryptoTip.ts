@@ -1,0 +1,70 @@
+import {expect} from "chai";
+import {ethers} from "hardhat";
+
+describe("CryptoTip", function () {
+    let cryptoTip: any;
+    // Team Members address
+    let teamMembers: any;
+    let SingedTeamMembers: any;
+    let owner: any;
+    const totalAmount = ethers.utils.parseEther("1");
+
+    beforeEach(async function () {
+        const CryptoTip = await ethers.getContractFactory("CryptoTip");
+
+        cryptoTip = await CryptoTip.deploy();
+        await cryptoTip.deployed();
+
+        const [signer, teamMember1, teamMember2] = await ethers.getSigners();
+        owner = signer;
+        teamMembers = [teamMember1.address, teamMember2.address];
+        SingedTeamMembers = [teamMember1, teamMember2];
+    });
+
+    /**
+     * Scenario: User can send tips
+     *  Given Fresh Deploy Crypto Tips Contract
+     *  When A user send "X" Amount Tips
+     *  Then Crypto Tips Contract balance should increase of X
+     */
+    it("should allow user to send tips to team members", async function () {
+        await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
+        expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(totalAmount)
+    })
+
+    it("Should allow Team Member to withdraw theirs accounts. ", async function () {
+        const initialBalances = await Promise.all(
+            teamMembers.map((member: any) => ethers.provider.getBalance(member))
+        );
+        const totalAmount = ethers.utils.parseEther("0.1");
+        await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
+        expect(await ethers.provider.getBalance(cryptoTip.address)).to.be.eql(totalAmount)
+
+        // await cryptoTip.sendTips(teamMembers);
+        await Promise.all(
+            SingedTeamMembers.map(async (signedMember: any) => {
+                await cryptoTip.connect(signedMember).withdraw()
+            })
+        );
+        const finalBalances = await Promise.all(
+            teamMembers.map(async (member: any) => {
+                return ethers.provider.getBalance(member)
+            })
+        );
+
+        for (let i = 0; i < teamMembers.length; i++) {
+            expect(finalBalances[i]).to.be.gt(initialBalances[i]);
+        }
+    });
+
+    it("emits TipsSent event", async function () {
+
+        const tx = await cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})
+        const receipt = await tx.wait();
+
+        const event = receipt.events.pop();
+        expect(event.event).to.equal("TipsSent");
+        expect(event.args.teamMembers).to.eql(teamMembers);
+        expect(event.args.amount).to.equal(totalAmount);
+    });
+});
