@@ -63,7 +63,7 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
      *      Given See <beforeEach>
      *      When the user sends tips to a list of team members
      *      Then the team members receive the correct amount of ETH
-     *      And the user's wallet balance is updated
+     *      And the user's balance in the smart contract is updated
      */
     it("should allow User can send tips to team members", async function () {
         // User sends tips
@@ -150,6 +150,7 @@ describe("Feature: CryptoTip contract allows users to send and push tips to team
         await expect(cryptoTip.connect(owner).sendTips([], {value: totalAmount})).to.be.revertedWith("Must have at least one team member")
         await expect(cryptoTip.connect(owner).pushTips([], {value: totalAmount})).to.be.revertedWith("Must have at least one team member")
         await expect(cryptoTip.connect(owner).sendTips(teamMembers, {value: totalAmount})).to.not.be.reverted
+        await expect(cryptoTip.connect(owner).pushTips(teamMembers, {value: totalAmount})).to.not.be.reverted
     });
 
     /**
