@@ -10,7 +10,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     mapping(address => uint256) public balances;
-    uint8 public pushLimit = 10;
+    uint8 public pushLimit;
     uint256 remainder;
 
     event TipsSent(address payable [] teamMembers, uint256 amount);
@@ -18,6 +18,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function initialize() initializer public {
         __Ownable_init();
+        pushLimit = 10;
     }
 
     function sendTips(address payable[] calldata teamMembers) external payable {
@@ -50,7 +51,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             uint amountToSend = amountPerMember;
             require(address(this).balance >= amountToSend, "Insufficient contract balance");
 
-            (bool sent,) = teamMembers[i].call{value : amountToSend}("");
+            (bool sent,) = teamMembers[i].call{value: amountToSend}("");
             require(sent, "Failed to send ETH");
         }
 
@@ -70,7 +71,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(balance > 0, "No balance to withdraw");
 
         balances[msg.sender] = 0;
-        (bool sent,) = msg.sender.call{value : balance}("");
+        (bool sent,) = msg.sender.call{value: balance}("");
         require(sent, "Failed to send ETH");
         require(balances[msg.sender] == 0, "Failed to zero out balance");
     }
