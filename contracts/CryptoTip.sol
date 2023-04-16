@@ -10,7 +10,7 @@ contract CryptoTip is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     mapping(address => uint256) public balances;
-    uint8 public pushLimit = 10;
+    uint8 public pushLimit;
     uint256 remainder;
 
     event TipsSent(address payable [] teamMembers, uint256 amount);
